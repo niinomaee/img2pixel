@@ -1,6 +1,6 @@
 # img2pixel
 
-Convert any image to pixel art PNG from the command line.
+Convert any imageto pixel art PNG from the command line.
 
 ```
 foto.jpg  →  foto-pixel.png
@@ -41,7 +41,8 @@ options:
 ```
 
 ## examples
-
+ 
+### image
 ```bash
 # basic, block size 8
 python3 pixelify.py foto.jpg
@@ -59,6 +60,14 @@ python3 pixelify.py foto.jpg --scale 2 -s 10 -p commodore
 python3 pixelify.py foto.jpg -w 800 -s 8 -p nes
 ```
 
+### GIF
+```bash
+# basic, block size 8
+python3 pixelify.py anime.gif
+
+# chunkier
+python3 pixelify.py anime.gif -s 16
+```
 ## palettes
 
 | name | colors | based on |
