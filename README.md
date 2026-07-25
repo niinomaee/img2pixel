@@ -1,6 +1,6 @@
 # img2pixel
 
-Convert any imageto pixel art PNG from the command line.
+Convert any image to pixel art PNG from the command line.
 
 ```
 foto.jpg  →  foto-pixel.png
