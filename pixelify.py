@@ -124,6 +124,20 @@ def pixelify(input_path, output_path, block_size, palette_name, output_width, sc
         print(f"\n✓ saved: {output_path}")
 
 
+def positive_int(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError(f"must be a positive integer, got {value}")
+    return ivalue
+
+
+def positive_float(value):
+    fvalue = float(value)
+    if fvalue <= 0:
+        raise argparse.ArgumentTypeError(f"must be a positive number, got {value}")
+    return fvalue
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="pixelify",
@@ -140,15 +154,15 @@ palettes: none, gameboy, nes, grayscale, cga, commodore"""
     )
     parser.add_argument("input", help="input image or GIF file")
     parser.add_argument("-o", "--output", help="output file (default: <input>-pixel.png/gif)")
-    parser.add_argument("-s", "--block-size", type=int, default=8, metavar="SIZE",
-                        help="pixel block size in px (default: 8)")
+    parser.add_argument("-s", "--block-size", type=positive_int, default=8, metavar="SIZE",
+                        help="pixel block size in px, must be > 0 (default: 8)")
     parser.add_argument("-p", "--palette", default="none",
                         choices=["none", "gameboy", "nes", "grayscale", "cga", "commodore"],
                         help="color palette (default: none)")
-    parser.add_argument("-w", "--width", type=int, metavar="PX",
-                        help="output width in pixels")
-    parser.add_argument("--scale", type=float, metavar="FACTOR",
-                        help="scale factor (e.g. 2.0 = double size)")
+    parser.add_argument("-w", "--width", type=positive_int, metavar="PX",
+                        help="output width in pixels, must be > 0")
+    parser.add_argument("--scale", type=positive_float, metavar="FACTOR",
+                        help="scale factor (e.g. 2.0 = double size), must be > 0")
 
     args = parser.parse_args()
 
