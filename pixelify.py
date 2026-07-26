@@ -31,6 +31,7 @@ PALETTES = {
     ],
 }
 
+SUPPORTED_OUTPUT_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
 
 def closest_color(pixel, palette):
     r, g, b = pixel[:3]
@@ -137,6 +138,16 @@ def positive_float(value):
         raise argparse.ArgumentTypeError(f"must be a positive number, got {value}")
     return fvalue
 
+def validate_output(path_str):
+    output_path = Path(path_str)
+
+    if output_path.suffix.lower() not in SUPPORTED_OUTPUT_EXT:
+        raise argparse.ArgumentTypeError(
+            f"Unsuported output extension  '{output_path.suffix}', "
+            f"expected one of: {', '.join(sorted(SUPPORTED_OUTPUT_EXT))}"
+        )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    return output_path
 
 def main():
     parser = argparse.ArgumentParser(
@@ -153,7 +164,7 @@ def main():
 palettes: none, gameboy, nes, grayscale, cga, commodore"""
     )
     parser.add_argument("input", help="input image or GIF file")
-    parser.add_argument("-o", "--output", help="output file (default: <input>-pixel.png/gif)")
+    parser.add_argument("-o", "--output",type=validate_output, default=0,  help="output file (default: <input>-pixel.png/gif)")
     parser.add_argument("-s", "--block-size", type=positive_int, default=8, metavar="SIZE",
                         help="pixel block size in px, must be > 0 (default: 8)")
     parser.add_argument("-p", "--palette", default="none",
