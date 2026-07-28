@@ -3,16 +3,16 @@
 Convert any image to pixel art PNG from the command line.
 
 ```
-foto.jpg  →  foto-pixel.png
+image.jpg  →  image-pixel.png
 ```
 
 ## install
 
 ```bash
-pip install Pillow
+pip install Pillow numpy
 ```
 
-then just download `pixelify.py` and run it.
+then just download/clone `pixelify.py` and run it.
 
 optionally, make it executable:
 
@@ -33,11 +33,12 @@ alias pixelify="python3 /path/to/pixelify.py"
 pixelify <input> [options]
 
 options:
-  -s, --block-size SIZE   pixel block size in px (default: 8)
+  -s, --block-size SIZE   pixel block size in px, must be > 0 (default: 8)
   -p, --palette NAME      color palette (default: none)
-  -o, --output FILE       output file (default: <input>-pixel.png)
-  -w, --width PX          output width in pixels
-      --scale FACTOR      scale factor (e.g. 2.0 = double size)
+  -o, --output FILE       output file (default: <input>-pixel.png/gif)
+                          supported extensions: .png .jpg .jpeg .gif .webp
+  -w, --width PX          output width in pixels, must be > 0
+      --scale FACTOR      scale factor (e.g. 2.0 = double size), must be > 0
 ```
 
 ## examples
@@ -45,19 +46,19 @@ options:
 ### image
 ```bash
 # basic, block size 8
-python3 pixelify.py foto.jpg
+python3 pixelify.py image.jpg
 
 # chunkier pixels
-python3 pixelify.py foto.jpg -s 16
+python3 pixelify.py image.jpg -s 16
 
 # gameboy palette, custom output
-python3 pixelify.py foto.jpg -s 12 -p gameboy -o out.png
+python3 pixelify.py image.jpg -s 12 -p gameboy -o out.png
 
 # 2x upscale with commodore 64 palette
-python3 pixelify.py foto.jpg --scale 2 -s 10 -p commodore
+python3 pixelify.py image.jpg --scale 2 -s 10 -p commodore
 
 # resize output width and apply nes palette
-python3 pixelify.py foto.jpg -w 800 -s 8 -p nes
+python3 pixelify.py image.jpg -w 800 -s 8 -p nes
 ```
 
 ### GIF
@@ -68,6 +69,9 @@ python3 pixelify.py anime.gif
 # chunkier
 python3 pixelify.py anime.gif -s 16
 ```
+
+> note: animated GIF input always saves as `.gif`, even if `-o` is given a different extension.
+
 ## palettes
 
 | name | colors | based on |
@@ -89,6 +93,7 @@ python3 pixelify.py anime.gif -s 16
 
 - Python 3.7+
 - [Pillow](https://pillow.readthedocs.io)
+- [numpy](https://numpy.org)
 
 ## license
 
