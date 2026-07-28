@@ -3,6 +3,7 @@
 import argparse
 import sys
 from pathlib import Path
+import numpy as np
 from PIL import Image, ImageSequence
 
 PALETTES = {
@@ -33,19 +34,18 @@ PALETTES = {
 
 SUPPORTED_OUTPUT_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
 
-def closest_color(pixel, palette):
-    r, g, b = pixel[:3]
-    return min(palette, key=lambda c: (r - c[0])**2 + (g - c[1])**2 + (b - c[2])**2)
-
-
 def apply_palette(img, palette):
     img = img.convert("RGB")
-    pixels = img.load()
-    w, h = img.size
-    for y in range(h):
-        for x in range(w):
-            pixels[x, y] = closest_color(pixels[x, y], palette)
-    return img
+    arr = np.array(img, dtype=np.int32)
+    pal = np.array(palette, dtype=np.int32)
+
+    diff = arr[:, :, None, :] - pal[None, None, :, :]
+    dist_sq = np.sum(diff ** 2, axis=-1)
+
+    nearest_idx = np.argmin(dist_sq, axis=-1)
+    result = pal[nearest_idx].astype(np.uint8)
+
+    return Image.fromarray(result, mode="RGB")
 
 
 def resolve_dimensions(src_w, src_h, output_width, scale):
