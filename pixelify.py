@@ -146,7 +146,6 @@ def validate_output(path_str):
             f"Unsuported output extension  '{output_path.suffix}', "
             f"expected one of: {', '.join(sorted(SUPPORTED_OUTPUT_EXT))}"
         )
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     return output_path
 
 def main():
@@ -155,11 +154,11 @@ def main():
         description="Convert image or animated GIF to pixel art",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""examples:
-  pixelify foto.jpg
-  pixelify anim.gif -s 12
-  pixelify anim.gif -s 10 -p gameboy -o out.gif
-  pixelify foto.jpg -w 800 -s 8
-  pixelify foto.jpg --scale 2 -s 10 -p commodore
+    pixelify image.jpg
+    pixelify anim.gif -s 12
+    pixelify anim.gif -s 10 -p gameboy -o out.gif
+    pixelify image.jpg -w 800 -s 8
+    pixelify image.jpg --scale 2 -s 10 -p commodore
 
 palettes: none, gameboy, nes, grayscale, cga, commodore"""
     )
@@ -187,6 +186,8 @@ palettes: none, gameboy, nes, grayscale, cga, commodore"""
     else:
         ext = ".gif" if input_path.suffix.lower() == ".gif" else ".png"
         output_path = input_path.parent / f"{input_path.stem}-pixel{ext}"
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     pixelify(input_path, output_path, args.block_size, args.palette, args.width, args.scale)
 
