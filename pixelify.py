@@ -68,15 +68,6 @@ def pixelify_frame(frame, final_w, final_h, block_size, palette_name):
     return small.resize((final_w, final_h), Image.NEAREST)
 
 
-def is_animated_gif(path):
-    try:
-        img = Image.open(path)
-        img.seek(1)
-        return True
-    except EOFError:
-        return False
-
-
 def pixelify(input_path, output_path, block_size, palette_name, output_width, scale):
     img = Image.open(input_path)
     src_w, src_h = img.size
@@ -84,7 +75,17 @@ def pixelify(input_path, output_path, block_size, palette_name, output_width, sc
     pixel_w = max(1, round(final_w / block_size))
     pixel_h = max(1, round(final_h / block_size))
 
-    if input_path.suffix.lower() == ".gif" and is_animated_gif(input_path):
+    is_animated = False
+    if input_path.suffix.lower() == ".gif":
+        try:
+            img.seek(1)
+            is_animated = True
+        except EOFError:
+            is_animated = False
+        finally:
+            img.seek(0)
+
+    if is_animated:
         frames = []
         durations = []
 
@@ -154,11 +155,11 @@ def main():
         description="Convert image or animated GIF to pixel art",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""examples:
-    pixelify image.jpg
-    pixelify anim.gif -s 12
-    pixelify anim.gif -s 10 -p gameboy -o out.gif
-    pixelify image.jpg -w 800 -s 8
-    pixelify image.jpg --scale 2 -s 10 -p commodore
+  pixelify foto.jpg
+  pixelify anim.gif -s 12
+  pixelify anim.gif -s 10 -p gameboy -o out.gif
+  pixelify foto.jpg -w 800 -s 8
+  pixelify foto.jpg --scale 2 -s 10 -p commodore
 
 palettes: none, gameboy, nes, grayscale, cga, commodore"""
     )
