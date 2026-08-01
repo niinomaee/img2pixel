@@ -69,8 +69,8 @@ python3 pixelify.py anime.gif
 # chunkier
 python3 pixelify.py anime.gif -s 16
 ```
-
-> note: animated GIF input always saves as `.gif`, even if `-o` is given a different extension.
+> [!NOTE]
+> animated GIF input always saves as `.gif`, even if `-o` is given a different extension.
 
 ## palettes
 
