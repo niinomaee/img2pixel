@@ -35,8 +35,11 @@ PALETTES = {
 SUPPORTED_OUTPUT_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
 
 def apply_palette(img, palette):
-    img = img.convert("RGB")
-    arr = np.array(img, dtype=np.int32)
+    has_alpha = img.mode == "RGBA"
+    alpha = img.getchannel("A") if has_alpha else None
+
+    rgb_img = img.convert("RGB")
+    arr = np.array(rgb_img, dtype=np.int32)
     pal = np.array(palette, dtype=np.int32)
 
     diff = arr[:, :, None, :] - pal[None, None, :, :]
@@ -45,7 +48,43 @@ def apply_palette(img, palette):
     nearest_idx = np.argmin(dist_sq, axis=-1)
     result = pal[nearest_idx].astype(np.uint8)
 
-    return Image.fromarray(result, mode="RGB")
+    result_img = Image.fromarray(result, mode="RGB")
+    if has_alpha:
+        result_img = result_img.convert("RGBA")
+        result_img.putalpha(alpha)
+    return result_img
+
+
+def has_transparency(img):
+    return img.mode in ("RGBA", "LA", "PA") or "transparency" in img.info
+
+
+def prepare_frame(frame):
+    if has_transparency(frame):
+        return frame.convert("RGBA")
+    return frame.convert("RGB")
+
+
+def flatten_to_rgb(img, bg=(255, 255, 255)):
+    if img.mode != "RGBA":
+        return img
+    background = Image.new("RGB", img.size, bg)
+    background.paste(img, mask=img.getchannel("A"))
+    return background
+
+
+def rgba_to_gif_frame(img, alpha_threshold=128):
+    if img.mode != "RGBA":
+        return img
+
+    alpha = img.getchannel("A")
+    rgb = img.convert("RGB")
+    p_img = rgb.quantize(colors=255, method=Image.MEDIANCUT)
+
+    transparent_mask = alpha.point(lambda a: 255 if a < alpha_threshold else 0)
+    p_img.paste(255, mask=transparent_mask)
+    p_img.info["transparency"] = 255
+    return p_img
 
 
 def resolve_dimensions(src_w, src_h, output_width, scale):
@@ -92,8 +131,10 @@ def pixelify(input_path, output_path, block_size, palette_name, output_width, sc
         for i, frame in enumerate(ImageSequence.Iterator(img)):
             duration = frame.info.get("duration", 100)
             durations.append(duration)
-            rgb = frame.convert("RGB")
-            result = pixelify_frame(rgb, final_w, final_h, block_size, palette_name)
+            prepared = prepare_frame(frame)
+            result = pixelify_frame(prepared, final_w, final_h, block_size, palette_name)
+            if result.mode == "RGBA":
+                result = rgba_to_gif_frame(result)
             frames.append(result)
             print(f"\r  processing frame {i+1}...", end="", flush=True)
 
@@ -115,8 +156,15 @@ def pixelify(input_path, output_path, block_size, palette_name, output_width, sc
         print(f"\n✓ saved: {out}")
 
     else:
-        rgb = img.convert("RGB")
-        result = pixelify_frame(rgb, final_w, final_h, block_size, palette_name)
+        prepared = prepare_frame(img)
+        result = pixelify_frame(prepared, final_w, final_h, block_size, palette_name)
+
+        out_ext = output_path.suffix.lower()
+        if result.mode == "RGBA":
+            if out_ext in (".jpg", ".jpeg"):
+                result = flatten_to_rgb(result)
+            elif out_ext == ".gif":
+                result = rgba_to_gif_frame(result)
 
         print(f"input:  {src_w}x{src_h}  ({input_path})")
         print(f"output: {final_w}x{final_h}  →  pixel grid {pixel_w}x{pixel_h}")
@@ -144,7 +192,7 @@ def validate_output(path_str):
 
     if output_path.suffix.lower() not in SUPPORTED_OUTPUT_EXT:
         raise argparse.ArgumentTypeError(
-            f"Unsuported output extension  '{output_path.suffix}', "
+            f"Unsupported output extension  '{output_path.suffix}', "
             f"expected one of: {', '.join(sorted(SUPPORTED_OUTPUT_EXT))}"
         )
     return output_path
@@ -155,11 +203,11 @@ def main():
         description="Convert image or animated GIF to pixel art",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""examples:
-  pixelify foto.jpg
-  pixelify anim.gif -s 12
-  pixelify anim.gif -s 10 -p gameboy -o out.gif
-  pixelify foto.jpg -w 800 -s 8
-  pixelify foto.jpg --scale 2 -s 10 -p commodore
+    pixelify image.jpg
+    pixelify anim.gif -s 12
+    pixelify anim.gif -s 10 -p gameboy -o out.gif
+    pixelify image.jpg -w 800 -s 8
+    pixelify iamge.jpg --scale 2 -s 10 -p commodore
 
 palettes: none, gameboy, nes, grayscale, cga, commodore"""
     )
