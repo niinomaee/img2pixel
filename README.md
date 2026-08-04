@@ -18,7 +18,7 @@ optionally, make it executable:
 
 ```bash
 chmod +x pixelify.py
-./pixelify.py foto.jpg
+./pixelify.py image.jpg
 ```
 
 or add an alias to your shell:
