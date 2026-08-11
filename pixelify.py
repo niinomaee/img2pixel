@@ -107,8 +107,24 @@ def pixelify_frame(frame, final_w, final_h, block_size, palette_name):
     return small.resize((final_w, final_h), Image.NEAREST)
 
 
+def load_image(input_path):
+    try:
+        img = Image.open(input_path)
+        img.load()
+    except FileNotFoundError:
+        print(f"error: file not found: {input_path}", file=sys.stderr)
+        sys.exit(1)
+    except Image.UnidentifiedImageError:
+        print(f"error: not a valid or supported image file: {input_path}", file=sys.stderr)
+        sys.exit(1)
+    except OSError as e:
+        print(f"error: could not read image '{input_path}': {e}", file=sys.stderr)
+        sys.exit(1)
+    return img
+
+
 def pixelify(input_path, output_path, block_size, palette_name, output_width, scale):
-    img = Image.open(input_path)
+    img = load_image(input_path)
     src_w, src_h = img.size
     final_w, final_h = resolve_dimensions(src_w, src_h, output_width, scale)
     pixel_w = max(1, round(final_w / block_size))
